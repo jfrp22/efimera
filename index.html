@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat P2P Efímero</title>
+    <title>Chat P2P Multimedia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #4361ee;
@@ -13,6 +14,7 @@
             --dark: #212529;
             --success: #4cc9f0;
             --danger: #f72585;
+            --warning: #f8961e;
         }
         
         body {
@@ -29,7 +31,7 @@
         
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -44,6 +46,7 @@
             color: white;
             padding: 20px;
             text-align: center;
+            position: relative;
         }
         
         h1 {
@@ -77,7 +80,10 @@
             padding: 10px 20px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         button:hover {
@@ -87,6 +93,10 @@
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
+        }
+        
+        button.warning {
+            background: var(--warning);
         }
         
         .chat-container {
@@ -102,11 +112,11 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
         }
         
         .message {
-            max-width: 75%;
+            max-width: 80%;
             padding: 12px 16px;
             border-radius: 18px;
             font-size: 0.95rem;
@@ -143,7 +153,39 @@
             background: white;
             border-top: 1px solid #e9ecef;
             display: flex;
+            flex-direction: column;
             gap: 10px;
+        }
+        
+        .message-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .media-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .media-btn {
+            background: #e9ecef;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--dark);
+        }
+        
+        .media-btn:hover {
+            background: #dee2e6;
+            transform: scale(1.1);
         }
         
         .status {
@@ -153,6 +195,107 @@
             color: #6c757d;
             background: #f8f9fa;
             border-top: 1px solid #e9ecef;
+        }
+        
+        /* Estilos para multimedia */
+        .media-container {
+            margin-top: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 100%;
+        }
+        
+        .media-container img, .media-container video {
+            max-width: 100%;
+            max-height: 300px;
+            display: block;
+        }
+        
+        .audio-container {
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        audio {
+            width: 100%;
+        }
+        
+        /* Emoji picker */
+        .emoji-picker {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 10px;
+            width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+        }
+        
+        .emoji-picker.show {
+            display: block;
+        }
+        
+        .emoji-category {
+            margin-bottom: 10px;
+        }
+        
+        .emoji-category h4 {
+            margin: 5px 0;
+            color: var(--dark);
+            font-size: 0.8rem;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+        }
+        
+        .emoji {
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .emoji:hover {
+            transform: scale(1.2);
+        }
+        
+        /* Preview de captura */
+        .capture-preview {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .capture-preview.show {
+            display: flex;
+        }
+        
+        .capture-preview img, .capture-preview video {
+            max-width: 90%;
+            max-height: 80vh;
+            margin-bottom: 20px;
+        }
+        
+        .capture-actions {
+            display: flex;
+            gap: 15px;
         }
         
         @keyframes fadeIn {
@@ -167,7 +310,16 @@
             }
             
             .message {
-                max-width: 85%;
+                max-width: 90%;
+            }
+            
+            .emoji-picker {
+                width: 250px;
+                right: 10px;
+            }
+            
+            .emoji-grid {
+                grid-template-columns: repeat(6, 1fr);
             }
         }
     </style>
@@ -175,29 +327,71 @@
 <body>
     <div class="container">
         <header>
-            <h1>Chat P2P Efímero</h1>
-            <p>Comunicación directa sin servidores que almacenen mensajes</p>
+            <h1><i class="fas fa-comments"></i> Chat P2P Multimedia</h1>
+            <p>Comunicación directa con texto, audio, video y más</p>
         </header>
         
         <div class="connection-panel">
             <input type="text" id="localId" placeholder="Tu identificador" readonly>
             <input type="text" id="remoteId" placeholder="ID del destinatario">
-            <button id="connectBtn">Conectar</button>
-            <button id="disconnectBtn" disabled>Desconectar</button>
+            <button id="connectBtn"><i class="fas fa-plug"></i> Conectar</button>
+            <button id="disconnectBtn" disabled><i class="fas fa-times"></i> Desconectar</button>
         </div>
         
         <div class="chat-container">
             <div id="chat"></div>
             
             <div class="input-area">
-                <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." disabled>
-                <button id="sendBtn" disabled>Enviar</button>
+                <div class="message-input-container">
+                    <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." disabled>
+                    <button id="emojiBtn" disabled><i class="far fa-smile"></i></button>
+                    <button id="sendBtn" disabled><i class="fas fa-paper-plane"></i></button>
+                </div>
+                
+                <div class="media-buttons">
+                    <button class="media-btn" id="audioBtn" title="Grabar audio"><i class="fas fa-microphone"></i></button>
+                    <button class="media-btn" id="videoBtn" title="Grabar video"><i class="fas fa-video"></i></button>
+                    <button class="media-btn" id="screenBtn" title="Compartir pantalla"><i class="fas fa-desktop"></i></button>
+                    <button class="media-btn" id="imageBtn" title="Enviar imagen"><i class="fas fa-image"></i></button>
+                    <button class="media-btn" id="fileBtn" title="Enviar archivo"><i class="fas fa-file-upload"></i></button>
+                </div>
             </div>
             
             <div class="status" id="status">
                 Desconectado
             </div>
         </div>
+        
+        <!-- Selector de emojis -->
+        <div class="emoji-picker" id="emojiPicker">
+            <div class="emoji-category">
+                <h4>Caras</h4>
+                <div class="emoji-grid" id="facesEmojis"></div>
+            </div>
+            <div class="emoji-category">
+                <h4>Manos</h4>
+                <div class="emoji-grid" id="handsEmojis"></div>
+            </div>
+            <div class="emoji-category">
+                <h4>Objetos</h4>
+                <div class="emoji-grid" id="objectsEmojis"></div>
+            </div>
+        </div>
+        
+        <!-- Preview de capturas -->
+        <div class="capture-preview" id="capturePreview">
+            <img id="previewImage" style="display: none;">
+            <video id="previewVideo" style="display: none;" controls></video>
+            <audio id="previewAudio" style="display: none;" controls></audio>
+            
+            <div class="capture-actions">
+                <button id="sendMediaBtn"><i class="fas fa-check"></i> Enviar</button>
+                <button id="cancelMediaBtn" class="warning"><i class="fas fa-times"></i> Cancelar</button>
+            </div>
+        </div>
+        
+        <!-- Input oculto para archivos -->
+        <input type="file" id="fileInput" accept="image/*,video/*,audio/*" style="display: none;">
     </div>
 
     <script>
@@ -208,16 +402,47 @@
         const disconnectBtn = document.getElementById('disconnectBtn');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
+        const emojiBtn = document.getElementById('emojiBtn');
+        const emojiPicker = document.getElementById('emojiPicker');
         const chat = document.getElementById('chat');
         const statusElement = document.getElementById('status');
+        
+        // Botones de multimedia
+        const audioBtn = document.getElementById('audioBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const screenBtn = document.getElementById('screenBtn');
+        const imageBtn = document.getElementById('imageBtn');
+        const fileBtn = document.getElementById('fileBtn');
+        const fileInput = document.getElementById('fileInput');
+        
+        // Preview de capturas
+        const capturePreview = document.getElementById('capturePreview');
+        const previewImage = document.getElementById('previewImage');
+        const previewVideo = document.getElementById('previewVideo');
+        const previewAudio = document.getElementById('previewAudio');
+        const sendMediaBtn = document.getElementById('sendMediaBtn');
+        const cancelMediaBtn = document.getElementById('cancelMediaBtn');
         
         // Variables de estado
         let peer;
         let conn;
         let localId = generateId();
+        let mediaStream;
+        let mediaRecorder;
+        let recordedChunks = [];
+        let currentMediaType = null;
+        
+        // Emojis por categoría
+        const emojis = {
+            faces: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳'],
+            hands: ['👋', '🤚', '🖐', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏'],
+            objects: ['⌚', '📱', '📲', '💻', '⌨️', '🖥', '🖨', '🖱', '🖲', '🕹', '🗜', '💽', '💾', '💿', '📀', '📼', '📷', '📸', '📹', '🎥', '📽', '🎞', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙', '🎚']
+        };
         
         // Inicialización
         localIdInput.value = localId;
+        setupEmojiPicker();
+        setupMediaButtons();
         
         // Generar ID aleatorio
         function generateId() {
@@ -234,6 +459,7 @@
                 localIdInput.value = id;
                 updateStatus('Conectado. Esperando conexión...');
                 connectBtn.disabled = false;
+                emojiBtn.disabled = false;
             });
             
             peer.on('connection', (connection) => {
@@ -263,6 +489,12 @@
                 updateStatus('Conectado a ' + conn.peer);
                 messageInput.disabled = false;
                 sendBtn.disabled = false;
+                emojiBtn.disabled = false;
+                audioBtn.disabled = false;
+                videoBtn.disabled = false;
+                screenBtn.disabled = false;
+                imageBtn.disabled = false;
+                fileBtn.disabled = false;
                 disconnectBtn.disabled = false;
                 connectBtn.disabled = true;
                 
@@ -270,7 +502,11 @@
             });
             
             conn.on('data', (data) => {
-                addMessage(data.message, false);
+                if (data.type === 'message') {
+                    addMessage(data.content, false);
+                } else if (data.type === 'media') {
+                    showMediaMessage(data.mediaType, data.content, false);
+                }
             });
             
             conn.on('close', () => {
@@ -297,6 +533,7 @@
         // Desconectar
         disconnectBtn.addEventListener('click', () => {
             if (conn) conn.close();
+            stopAllMedia();
             resetConnection();
         });
         
@@ -307,16 +544,20 @@
         });
         
         function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message || !conn || !conn.open) return;
+            const content = messageInput.value.trim();
+            if (!content || !conn || !conn.open) return;
             
-            conn.send({ type: 'message', message });
-            addMessage(message, true);
+            conn.send({ 
+                type: 'message',
+                content: content
+            });
+            
+            addMessage(content, true);
             messageInput.value = '';
         }
         
         // Añadir mensaje al chat
-        function addMessage(message, isSent) {
+        function addMessage(content, isSent) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
             messageElement.classList.add(isSent ? 'sent' : 'received');
@@ -324,8 +565,55 @@
             const now = new Date();
             const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
+            // Procesar emojis y saltos de línea
+            const processedContent = content.replace(/\n/g, '<br>');
+            
             messageElement.innerHTML = `
-                ${message}
+                ${processedContent}
+                <span class="message-time">${timeString}</span>
+            `;
+            
+            chat.appendChild(messageElement);
+            chat.scrollTop = chat.scrollHeight;
+        }
+        
+        // Mostrar mensaje multimedia
+        function showMediaMessage(mediaType, content, isSent) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(isSent ? 'sent' : 'received');
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            let mediaContent = '';
+            
+            if (mediaType === 'image') {
+                mediaContent = `<div class="media-container"><img src="${content}" alt="Imagen enviada"></div>`;
+            } else if (mediaType === 'video') {
+                mediaContent = `
+                    <div class="media-container">
+                        <video controls>
+                            <source src="${content}" type="video/mp4">
+                            Tu navegador no soporta videos HTML5.
+                        </video>
+                    </div>
+                `;
+            } else if (mediaType === 'audio') {
+                mediaContent = `
+                    <div class="audio-container">
+                        <audio controls>
+                            <source src="${content}" type="audio/wav">
+                            Tu navegador no soporta audio HTML5.
+                        </audio>
+                    </div>
+                `;
+            } else if (mediaType === 'file') {
+                mediaContent = `<div><i class="fas fa-file"></i> Archivo adjunto</div>`;
+            }
+            
+            messageElement.innerHTML = `
+                ${mediaContent}
                 <span class="message-time">${timeString}</span>
             `;
             
@@ -359,8 +647,370 @@
             conn = null;
             messageInput.disabled = true;
             sendBtn.disabled = true;
+            emojiBtn.disabled = true;
+            audioBtn.disabled = true;
+            videoBtn.disabled = true;
+            screenBtn.disabled = true;
+            imageBtn.disabled = true;
+            fileBtn.disabled = true;
             disconnectBtn.disabled = true;
             connectBtn.disabled = false;
+        }
+        
+        // Configurar selector de emojis
+        function setupEmojiPicker() {
+            // Llenar el selector de emojis
+            const facesContainer = document.getElementById('facesEmojis');
+            const handsContainer = document.getElementById('handsEmojis');
+            const objectsContainer = document.getElementById('objectsEmojis');
+            
+            emojis.faces.forEach(emoji => {
+                const emojiElement = document.createElement('div');
+                emojiElement.classList.add('emoji');
+                emojiElement.textContent = emoji;
+                emojiElement.addEventListener('click', () => {
+                    messageInput.value += emoji;
+                    messageInput.focus();
+                });
+                facesContainer.appendChild(emojiElement);
+            });
+            
+            emojis.hands.forEach(emoji => {
+                const emojiElement = document.createElement('div');
+                emojiElement.classList.add('emoji');
+                emojiElement.textContent = emoji;
+                emojiElement.addEventListener('click', () => {
+                    messageInput.value += emoji;
+                    messageInput.focus();
+                });
+                handsContainer.appendChild(emojiElement);
+            });
+            
+            emojis.objects.forEach(emoji => {
+                const emojiElement = document.createElement('div');
+                emojiElement.classList.add('emoji');
+                emojiElement.textContent = emoji;
+                emojiElement.addEventListener('click', () => {
+                    messageInput.value += emoji;
+                    messageInput.focus();
+                });
+                objectsContainer.appendChild(emojiElement);
+            });
+            
+            // Mostrar/ocultar selector
+            emojiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                emojiPicker.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
+                    emojiPicker.classList.remove('show');
+                }
+            });
+        }
+        
+        // Configurar botones de multimedia
+        function setupMediaButtons() {
+            // Audio
+            audioBtn.addEventListener('click', () => {
+                if (!conn || !conn.open) return;
+                currentMediaType = 'audio';
+                startAudioRecording();
+            });
+            
+            // Video
+            videoBtn.addEventListener('click', () => {
+                if (!conn || !conn.open) return;
+                currentMediaType = 'video';
+                startVideoRecording();
+            });
+            
+            // Pantalla
+            screenBtn.addEventListener('click', () => {
+                if (!conn || !conn.open) return;
+                currentMediaType = 'video';
+                startScreenSharing();
+            });
+            
+            // Imagen
+            imageBtn.addEventListener('click', () => {
+                if (!conn || !conn.open) return;
+                fileInput.accept = 'image/*';
+                fileInput.click();
+            });
+            
+            // Archivo
+            fileBtn.addEventListener('click', () => {
+                if (!conn || !conn.open) return;
+                fileInput.accept = '*';
+                fileInput.click();
+            });
+            
+            // Manejar selección de archivos
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Botones de preview
+            sendMediaBtn.addEventListener('click', sendMedia);
+            cancelMediaBtn.addEventListener('click', cancelMedia);
+        }
+        
+        // Grabar audio
+        async function startAudioRecording() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                previewAudio.style.display = 'block';
+                previewVideo.style.display = 'none';
+                previewImage.style.display = 'none';
+                
+                mediaRecorder = new MediaRecorder(mediaStream);
+                recordedChunks = [];
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(recordedChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    previewAudio.src = audioUrl;
+                    showPreview();
+                };
+                
+                mediaRecorder.start();
+                updateStatus('Grabando audio...');
+                
+            } catch (err) {
+                console.error('Error al grabar audio:', err);
+                updateStatus('Error al acceder al micrófono', true);
+            }
+        }
+        
+        // Grabar video
+        async function startVideoRecording() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                
+                previewVideo.style.display = 'block';
+                previewAudio.style.display = 'none';
+                previewImage.style.display = 'none';
+                
+                previewVideo.srcObject = mediaStream;
+                previewVideo.play();
+                
+                mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm' });
+                recordedChunks = [];
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const videoUrl = URL.createObjectURL(videoBlob);
+                    
+                    previewVideo.srcObject = null;
+                    previewVideo.src = videoUrl;
+                    showPreview();
+                };
+                
+                mediaRecorder.start();
+                updateStatus('Grabando video...');
+                
+            } catch (err) {
+                console.error('Error al grabar video:', err);
+                updateStatus('Error al acceder a la cámara', true);
+            }
+        }
+        
+        // Compartir pantalla
+        async function startScreenSharing() {
+            try {
+                mediaStream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: true,
+                    audio: true 
+                });
+                
+                previewVideo.style.display = 'block';
+                previewAudio.style.display = 'none';
+                previewImage.style.display = 'none';
+                
+                previewVideo.srcObject = mediaStream;
+                previewVideo.play();
+                
+                mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm' });
+                recordedChunks = [];
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const videoUrl = URL.createObjectURL(videoBlob);
+                    
+                    previewVideo.srcObject = null;
+                    previewVideo.src = videoUrl;
+                    showPreview();
+                };
+                
+                mediaRecorder.start();
+                updateStatus('Compartiendo pantalla...');
+                
+                // Detener cuando el usuario deje de compartir
+                mediaStream.getVideoTracks()[0].onended = () => {
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                        stopAllMedia();
+                    }
+                };
+                
+            } catch (err) {
+                console.error('Error al compartir pantalla:', err);
+                updateStatus('Error al compartir pantalla', true);
+            }
+        }
+        
+        // Manejar selección de archivos
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const fileType = file.type.split('/')[0];
+            const reader = new FileReader();
+            
+            if (fileType === 'image') {
+                currentMediaType = 'image';
+                reader.onload = (event) => {
+                    previewImage.src = event.target.result;
+                    previewImage.style.display = 'block';
+                    previewVideo.style.display = 'none';
+                    previewAudio.style.display = 'none';
+                    showPreview();
+                };
+                reader.readAsDataURL(file);
+            } 
+            else if (fileType === 'video') {
+                currentMediaType = 'video';
+                const videoUrl = URL.createObjectURL(file);
+                previewVideo.src = videoUrl;
+                previewVideo.style.display = 'block';
+                previewImage.style.display = 'none';
+                previewAudio.style.display = 'none';
+                showPreview();
+            } 
+            else if (fileType === 'audio') {
+                currentMediaType = 'audio';
+                const audioUrl = URL.createObjectURL(file);
+                previewAudio.src = audioUrl;
+                previewAudio.style.display = 'block';
+                previewVideo.style.display = 'none';
+                previewImage.style.display = 'none';
+                showPreview();
+            } 
+            else {
+                currentMediaType = 'file';
+                // Para otros tipos de archivo, podrías subirlo a IPFS o simplemente enviar el nombre
+                addSystemMessage('Archivo seleccionado: ' + file.name);
+                sendFile(file);
+            }
+            
+            // Resetear input
+            e.target.value = '';
+        }
+        
+        // Mostrar preview de media
+        function showPreview() {
+            capturePreview.classList.add('show');
+        }
+        
+        // Cancelar envío de media
+        function cancelMedia() {
+            capturePreview.classList.remove('show');
+            stopAllMedia();
+        }
+        
+        // Enviar media
+        function sendMedia() {
+            if (!currentMediaType) return;
+            
+            capturePreview.classList.remove('show');
+            
+            if (currentMediaType === 'audio') {
+                const audioBlob = new Blob(recordedChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                conn.send({
+                    type: 'media',
+                    mediaType: 'audio',
+                    content: audioUrl
+                });
+                
+                showMediaMessage('audio', audioUrl, true);
+            } 
+            else if (currentMediaType === 'video') {
+                const videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                const videoUrl = URL.createObjectURL(videoBlob);
+                
+                conn.send({
+                    type: 'media',
+                    mediaType: 'video',
+                    content: videoUrl
+                });
+                
+                showMediaMessage('video', videoUrl, true);
+            } 
+            else if (currentMediaType === 'image') {
+                conn.send({
+                    type: 'media',
+                    mediaType: 'image',
+                    content: previewImage.src
+                });
+                
+                showMediaMessage('image', previewImage.src, true);
+            }
+            
+            stopAllMedia();
+        }
+        
+        // Enviar archivo (simplificado)
+        function sendFile(file) {
+            // En una implementación real, podrías usar IPFS o similar
+            conn.send({
+                type: 'media',
+                mediaType: 'file',
+                content: file.name
+            });
+            
+            addSystemMessage(`Archivo enviado: ${file.name} (simulado)`);
+        }
+        
+        // Detener toda captura de media
+        function stopAllMedia() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            
+            recordedChunks = [];
+            currentMediaType = null;
+            
+            previewVideo.srcObject = null;
+            previewVideo.src = '';
+            previewAudio.src = '';
+            previewImage.src = '';
         }
         
         // Inicializar PeerJS cuando se carga la biblioteca
