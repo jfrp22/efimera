@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensajería Efímera</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 100%;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+        
+        #chat {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #fafafa;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+        }
+        
+        .message.sent {
+            align-self: flex-end;
+            background-color: var(--accent-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.received {
+            align-self: flex-start;
+            background-color: #e9ecef;
+            color: var(--dark-color);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-time {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: right;
+        }
+        
+        .input-area {
+            display: flex;
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        #message {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+        
+        #message:focus {
+            border-color: var(--accent-color);
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 0 24px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .status {
+            text-align: center;
+            padding: 8px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 0;
+            }
+            
+            .chat-container {
+                height: calc(100vh - 40px);
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+        }
+        
+        /* Animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* Scrollbar personalizada */
+        #chat::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #chat::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        #chat::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+        
+        #chat::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mensajería Efímera</h1>
+            <p class="subtitle">Los mensajes no se almacenan y desaparecen al cerrar la página</p>
+        </header>
+        
+        <div class="chat-container">
+            <div id="chat"></div>
+            
+            <div class="input-area">
+                <input type="text" id="message" placeholder="Escribe tu mensaje..." autocomplete="off">
+                <button onclick="sendMessage()">Enviar</button>
+            </div>
+            
+            <div class="status" id="status">
+                Conectado localmente
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Conexión simple entre clientes en la misma página
+        const chat = document.getElementById('chat');
+        const messageInput = document.getElementById('message');
+        const statusElement = document.getElementById('status');
+        
+        // Simulamos "transmisión" entre pestañas del mismo origen
+        const broadcastChannel = new BroadcastChannel('ephemeral_chat_channel');
+        
+        // Configurar el receptor de mensajes
+        broadcastChannel.onmessage = (event) => {
+            if (event.data.type === 'chat_message') {
+                addMessageToChat(event.data.message, false);
+            }
+        };
+        
+        // Enviar mensaje al presionar Enter
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                addMessageToChat(message, true);
+                
+                // "Transmitir" a otras pestañas
+                broadcastChannel.postMessage({
+                    type: 'chat_message',
+                    message: message
+                });
+                
+                messageInput.value = '';
+            }
+        }
+        
+        function addMessageToChat(message, isSent) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(isSent ? 'sent' : 'received');
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageElement.innerHTML = `
+                ${message}
+                <span class="message-time">${timeString}</span>
+            `;
+            
+            chat.appendChild(messageElement);
+            chat.scrollTop = chat.scrollHeight;
+        }
+        
+        // Limpiar todo al cerrar la página
+        window.addEventListener('beforeunload', () => {
+            broadcastChannel.close();
+        });
+        
+        // Mostrar mensaje inicial
+        addMessageToChat("Los mensajes en esta conversación son temporales y no se almacenan en ningún servidor.", false);
+    </script>
+</body>
+</html>
