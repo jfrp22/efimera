@@ -3,44 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mensajería Efímera</title>
+    <title>Chat P2P Efímero</title>
     <style>
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4cc9f0;
-            --warning-color: #f72585;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --danger: #f72585;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            color: var(--dark-color);
+            background: #f0f2f5;
+            color: var(--dark);
             line-height: 1.6;
+            margin: 0;
             padding: 20px;
-            max-width: 100%;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
         }
         
         .container {
+            width: 100%;
             max-width: 800px;
-            margin: 0 auto;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
         }
         
         header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             padding: 20px;
             text-align: center;
@@ -51,48 +51,82 @@
             margin-bottom: 8px;
         }
         
-        .subtitle {
-            font-size: 0.9rem;
-            opacity: 0.9;
+        .connection-panel {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: var(--secondary);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
         
         .chat-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            height: 500px;
+            overflow: hidden;
         }
         
         #chat {
-            flex-grow: 1;
+            flex: 1;
             padding: 20px;
             overflow-y: auto;
-            background-color: #fafafa;
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
         
         .message {
-            max-width: 70%;
+            max-width: 75%;
             padding: 12px 16px;
             border-radius: 18px;
             font-size: 0.95rem;
             line-height: 1.4;
             position: relative;
             word-wrap: break-word;
+            animation: fadeIn 0.3s ease-out;
         }
         
         .message.sent {
             align-self: flex-end;
-            background-color: var(--accent-color);
+            background: var(--accent);
             color: white;
             border-bottom-right-radius: 4px;
         }
         
         .message.received {
             align-self: flex-start;
-            background-color: #e9ecef;
-            color: var(--dark-color);
+            background: #e9ecef;
+            color: var(--dark);
             border-bottom-left-radius: 4px;
         }
         
@@ -105,154 +139,184 @@
         }
         
         .input-area {
-            display: flex;
             padding: 15px;
-            background-color: white;
+            background: white;
             border-top: 1px solid #e9ecef;
-        }
-        
-        #message {
-            flex-grow: 1;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 24px;
-            font-size: 1rem;
-            outline: none;
-            transition: border 0.3s;
-        }
-        
-        #message:focus {
-            border-color: var(--accent-color);
-        }
-        
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 24px;
-            padding: 0 24px;
-            margin-left: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: var(--secondary-color);
+            display: flex;
+            gap: 10px;
         }
         
         .status {
+            padding: 10px;
             text-align: center;
-            padding: 8px;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             color: #6c757d;
-            background-color: #f8f9fa;
+            background: #f8f9fa;
             border-top: 1px solid #e9ecef;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         @media (max-width: 600px) {
             .container {
+                height: 100vh;
                 border-radius: 0;
-            }
-            
-            .chat-container {
-                height: calc(100vh - 40px);
             }
             
             .message {
                 max-width: 85%;
             }
         }
-        
-        /* Animaciones */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .message {
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        /* Scrollbar personalizada */
-        #chat::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        #chat::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        
-        #chat::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 3px;
-        }
-        
-        #chat::-webkit-scrollbar-thumb:hover {
-            background: #aaa;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Mensajería Efímera</h1>
-            <p class="subtitle">Los mensajes no se almacenan y desaparecen al cerrar la página</p>
+            <h1>Chat P2P Efímero</h1>
+            <p>Comunicación directa sin servidores que almacenen mensajes</p>
         </header>
+        
+        <div class="connection-panel">
+            <input type="text" id="localId" placeholder="Tu identificador" readonly>
+            <input type="text" id="remoteId" placeholder="ID del destinatario">
+            <button id="connectBtn">Conectar</button>
+            <button id="disconnectBtn" disabled>Desconectar</button>
+        </div>
         
         <div class="chat-container">
             <div id="chat"></div>
             
             <div class="input-area">
-                <input type="text" id="message" placeholder="Escribe tu mensaje..." autocomplete="off">
-                <button onclick="sendMessage()">Enviar</button>
+                <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." disabled>
+                <button id="sendBtn" disabled>Enviar</button>
             </div>
             
             <div class="status" id="status">
-                Conectado localmente
+                Desconectado
             </div>
         </div>
     </div>
-    
+
     <script>
-        // Conexión simple entre clientes en la misma página
+        // Elementos del DOM
+        const localIdInput = document.getElementById('localId');
+        const remoteIdInput = document.getElementById('remoteId');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
         const chat = document.getElementById('chat');
-        const messageInput = document.getElementById('message');
         const statusElement = document.getElementById('status');
         
-        // Simulamos "transmisión" entre pestañas del mismo origen
-        const broadcastChannel = new BroadcastChannel('ephemeral_chat_channel');
+        // Variables de estado
+        let peer;
+        let conn;
+        let localId = generateId();
         
-        // Configurar el receptor de mensajes
-        broadcastChannel.onmessage = (event) => {
-            if (event.data.type === 'chat_message') {
-                addMessageToChat(event.data.message, false);
-            }
-        };
+        // Inicialización
+        localIdInput.value = localId;
         
-        // Enviar mensaje al presionar Enter
+        // Generar ID aleatorio
+        function generateId() {
+            return Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Configurar PeerJS
+        function setupPeer() {
+            // Usamos un servidor de señalización público (puedes crear el tuyo)
+            peer = new Peer(localId);
+            
+            peer.on('open', (id) => {
+                localId = id;
+                localIdInput.value = id;
+                updateStatus('Conectado. Esperando conexión...');
+                connectBtn.disabled = false;
+            });
+            
+            peer.on('connection', (connection) => {
+                conn = connection;
+                setupConnection();
+            });
+            
+            peer.on('error', (err) => {
+                console.error('Error:', err);
+                updateStatus('Error: ' + err.message, true);
+            });
+            
+            peer.on('disconnected', () => {
+                updateStatus('Desconectado. Reconectando...');
+                peer.reconnect();
+            });
+            
+            peer.on('close', () => {
+                resetConnection();
+                updateStatus('Desconectado');
+            });
+        }
+        
+        // Configurar conexión
+        function setupConnection() {
+            conn.on('open', () => {
+                updateStatus('Conectado a ' + conn.peer);
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                disconnectBtn.disabled = false;
+                connectBtn.disabled = true;
+                
+                addSystemMessage('Conexión establecida');
+            });
+            
+            conn.on('data', (data) => {
+                addMessage(data.message, false);
+            });
+            
+            conn.on('close', () => {
+                addSystemMessage('Conexión cerrada');
+                resetConnection();
+            });
+            
+            conn.on('error', (err) => {
+                console.error('Error en conexión:', err);
+                updateStatus('Error: ' + err.message, true);
+            });
+        }
+        
+        // Conectar a otro peer
+        connectBtn.addEventListener('click', () => {
+            const remoteId = remoteIdInput.value.trim();
+            if (!remoteId) return;
+            
+            conn = peer.connect(remoteId);
+            setupConnection();
+            updateStatus('Conectando a ' + remoteId + '...');
+        });
+        
+        // Desconectar
+        disconnectBtn.addEventListener('click', () => {
+            if (conn) conn.close();
+            resetConnection();
+        });
+        
+        // Enviar mensaje
+        sendBtn.addEventListener('click', sendMessage);
         messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+            if (e.key === 'Enter') sendMessage();
         });
         
         function sendMessage() {
             const message = messageInput.value.trim();
-            if (message) {
-                addMessageToChat(message, true);
-                
-                // "Transmitir" a otras pestañas
-                broadcastChannel.postMessage({
-                    type: 'chat_message',
-                    message: message
-                });
-                
-                messageInput.value = '';
-            }
+            if (!message || !conn || !conn.open) return;
+            
+            conn.send({ type: 'message', message });
+            addMessage(message, true);
+            messageInput.value = '';
         }
         
-        function addMessageToChat(message, isSent) {
+        // Añadir mensaje al chat
+        function addMessage(message, isSent) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
             messageElement.classList.add(isSent ? 'sent' : 'received');
@@ -269,13 +333,47 @@
             chat.scrollTop = chat.scrollHeight;
         }
         
-        // Limpiar todo al cerrar la página
-        window.addEventListener('beforeunload', () => {
-            broadcastChannel.close();
-        });
+        // Añadir mensaje del sistema
+        function addSystemMessage(text) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.style.alignSelf = 'center';
+            messageElement.style.background = 'none';
+            messageElement.style.color = '#6c757d';
+            messageElement.style.fontStyle = 'italic';
+            messageElement.textContent = text;
+            
+            chat.appendChild(messageElement);
+            chat.scrollTop = chat.scrollHeight;
+        }
         
-        // Mostrar mensaje inicial
-        addMessageToChat("Los mensajes en esta conversación son temporales y no se almacenan en ningún servidor.", false);
+        // Actualizar estado
+        function updateStatus(text, isError = false) {
+            statusElement.textContent = text;
+            statusElement.style.color = isError ? 'var(--danger)' : '#6c757d';
+        }
+        
+        // Resetear conexión
+        function resetConnection() {
+            if (conn) conn.close();
+            conn = null;
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+            disconnectBtn.disabled = true;
+            connectBtn.disabled = false;
+        }
+        
+        // Inicializar PeerJS cuando se carga la biblioteca
+        function init() {
+            // Cargar PeerJS dinámicamente
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js';
+            script.onload = setupPeer;
+            document.head.appendChild(script);
+        }
+        
+        // Iniciar la aplicación
+        init();
     </script>
 </body>
 </html>
